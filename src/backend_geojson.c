@@ -111,20 +111,19 @@ static void geojson_curveto(FILE *fout, dpoint_t p1, dpoint_t p2, dpoint_t p3,
   q2 = trans(p2, tr);
   q3 = trans(p3, tr);
 
-  if (q1.x == q3.x && q1.y == q3.y) {
-    step = 1.0 / 8.0;
+  step = 1.0 / 8.0;
+  t = step;
+  x = bezier(t, cur.x, q1.x, q2.x, q3.x);
+  y = bezier(t, cur.y, q1.y, q2.y, q3.y);
+  fprintf(fout, ", LINESTRING(%s %s", round_to_unit(x), round_to_unit(y));
 
-    for (i = 0, t = step; i < 8; i++, t += step) {
-      x = bezier(t, cur.x, q1.x, q2.x, q3.x);
-      y = bezier(t, cur.y, q1.y, q2.y, q3.y);
+  for (i = 1, t = (step * 2); i < 8; i++, t += step) {
+    x = bezier(t, cur.x, q1.x, q2.x, q3.x);
+    y = bezier(t, cur.y, q1.y, q2.y, q3.y);
 
-      fprintf(fout, ", [%s, %s]", round_to_unit(x), round_to_unit(y));
-    }
-  } else {
-    fprintf(fout, ", CIRCULARSTRING(%s %s, %s %s, %s %s)", round_to_unit(q1.x),
-            round_to_unit(q1.y), round_to_unit(q2.x), round_to_unit(q2.y),
-            round_to_unit(q3.x), round_to_unit(q3.y));
+    fprintf(fout, ", %s %s", round_to_unit(x), round_to_unit(y));
   }
+  fprintf(fout, ")");
 
   cur = q3;
 }
